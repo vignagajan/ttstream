@@ -14,7 +14,7 @@ This project serves as a an end-to-end data engineering pipeline for fetching st
 
 ## System Architecture
 
-![System Architecture](https://github.com/vignagajan/blob/main/architecture.png)
+![System Architecture](https://github.com/vignagajan/ttstream/blob/main/architecture.png)
 
 The project is designed with the following components:
 
