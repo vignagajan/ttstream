@@ -17,6 +17,7 @@ services:
         retries: 5
       networks:
         - confluent
+
   broker:
     image: confluentinc/cp-server:7.4.0
     hostname: broker
@@ -54,7 +55,7 @@ services:
       timeout: 5s
       retries: 5
 
-    schema-registry:
+  schema-registry:
     image: confluentinc/cp-schema-registry:7.4.0
     hostname: schema-registry
     container_name: schema-registry
@@ -74,8 +75,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-      control-center:
+  control-center:
     image: confluentinc/cp-enterprise-control-center:7.4.0
     hostname: control-center
     container_name: control-center
@@ -132,6 +132,24 @@ services:
     networks:
       - confluent
 
+  scheduler:
+    image: apache/airflow:2.6.0-python3.9
+    depends_on:
+      webserver:
+        condition: service_healthy
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./script/entrypoint.sh:/opt/airflow/script/entrypoint.sh
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=Sequential
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW_WEBSERVER_SECRET_KEY=this_is_a_very_secured_key
+    command: bash -c "pip install -r ./requirements.txt && airflow db upgrade && airflow scheduler"
+    networks:
+      - confluent
+
   postgres:
     image: postgres:14.0
     environment:
@@ -165,8 +183,8 @@ services:
       SPARK_MASTER_URL: spark://spark-master:7077
     networks:
       - confluent
-  
-    cassandra_db:
+
+  cassandra_db:
     image: cassandra:latest
     container_name: cassandra
     hostname: cassandra
